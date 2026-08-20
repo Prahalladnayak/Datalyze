@@ -17,6 +17,7 @@ psycopg2-binary
 jinja2
 # SQLite (keep until migration verified, then remove)
 aiosqlite
+scikit-learn
 passlib[bcrypt]
 python-jose[cryptography]
 razorpay
