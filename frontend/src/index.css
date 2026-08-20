@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-white font-sans antialiased overflow-x-hidden;
+  }
+}
+
+@layer components {
+
+  /* Minimal glassmorphism card */
+  .glass-card {
+    @apply bg-surface/80 backdrop-blur-md border border-white/10 rounded-2xl shadow-card transition-all duration-300;
+  }
+
+  .glass-card:hover {
+    @apply shadow-glow border-primary-500/50 transform -translate-y-1;
+  }
+
+  /* Interactive Button with depth */
+  .btn-primary {
+    @apply relative inline-flex items-center justify-center gap-2 px-6 py-3 font-semibold text-white bg-gradient-to-r from-primary-600 to-primary-500 rounded-xl shadow-lg transition-all duration-300 overflow-hidden;
+  }
+
+  .btn-primary:hover {
+    @apply shadow-glow transform -translate-y-0.5;
+  }
+
+  .btn-primary:active {
+    @apply transform translate-y-0 shadow-sm;
+  }
+
+  .btn-secondary {
+    @apply relative inline-flex items-center justify-center gap-2 px-6 py-3 font-semibold text-white bg-surface border border-white/20 rounded-xl shadow-md transition-all duration-300;
+  }
+
+  .btn-secondary:hover {
+    @apply bg-white/10 border-white/40;
+  }
+
+  /* Form Inputs */
+  .input-field {
+    @apply w-full bg-background border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+
+  /* Table styles */
+  .data-table {
+    @apply w-full text-left border-collapse;
+  }
+
+  .data-table th {
+    @apply bg-white/5 border-b border-white/10 p-4 font-semibold text-gray-300;
+  }
+
+  .data-table td {
+    @apply border-b border-white/5 p-4 text-gray-400;
+  }
+
+  .data-table tbody tr {
+    @apply transition-colors hover:bg-white/5;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Page transition animations */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* AI Wave Loader animations */
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.7); opacity: 0.5; }
+  50% { transform: scaleY(1.3); opacity: 1; }
+}
+.wave-anim {
+  animation: wave 1s infinite ease-in-out;
+}
+
+/* Homepage kinetic typography */
+@keyframes letterDrop {
+  from { opacity: 0; transform: translateY(-0.4em) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)       scale(1); }
+}
+
+/* Generic fade-in utility */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out both;
+}
+
+/* Shimmer Skeleton placeholder animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* Button spinner (18px CSS spinner) */
+.btn-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Shake animation on error */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.animate-shake {
+  animation: shake 0.25s ease-in-out;
+}

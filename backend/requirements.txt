@@ -1,0 +1,22 @@
+fastapi
+uvicorn
+pandas
+numpy
+google-generativeai
+kaggle
+python-multipart
+pydantic
+python-dotenv
+openpyxl
+pyarrow
+# PostgreSQL (production)
+asyncpg
+alembic
+psycopg2-binary
+# Admin dashboard
+jinja2
+# SQLite (keep until migration verified, then remove)
+aiosqlite
+passlib[bcrypt]
+python-jose[cryptography]
+razorpay

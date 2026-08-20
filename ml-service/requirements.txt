@@ -1,0 +1,25 @@
+# Datalyze ML Service — Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# ── Web Framework ─────────────────────────────────────────────────────────────
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+python-dotenv
+
+# ── ML & Data Science Core ────────────────────────────────────────────────────
+pandas
+numpy
+scikit-learn
+
+# ── Visualization (for EDA plots, returned as base64) ────────────────────────
+matplotlib
+seaborn
+
+# ── File Format Support ───────────────────────────────────────────────────────
+openpyxl
+pyarrow
+
+# ── HTTP Client (for GPU provider communication) ─────────────────────────────
+httpx

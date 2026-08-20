@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Admin — Datalyze</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#070e20;--surface:#0f1629;--surface2:#141d35;--border:rgba(255,255,255,.07);--text:#e2e8f0;--muted:#64748b;--accent:#6366f1;--accent2:#8b5cf6;--green:#34d399;--amber:#fbbf24;--red:#f87171;--blue:#60a5fa;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:.875rem;min-height:100vh;}
+
+/* Topbar */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.brand{font-weight:800;font-size:1.1rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.admin-badge{font-size:.7rem;color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:4px 12px;border-radius:20px;}
+.btn-logout{font-size:.75rem;color:var(--muted);text-decoration:none;background:transparent;border:1px solid var(--border);padding:5px 14px;border-radius:8px;cursor:pointer;transition:all .15s;}
+.btn-logout:hover{border-color:var(--red);color:var(--red);}
+
+/* Layout */
+.main{max-width:1400px;margin:0 auto;padding:24px 20px 60px;}
+
+/* Stat cards */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;}
+.stat-label{font-size:.68rem;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);font-weight:600;margin-bottom:8px;}
+.stat-val{font-size:2rem;font-weight:800;}
+.c-accent{color:var(--accent)}.c-green{color:var(--green)}.c-amber{color:var(--amber)}.c-red{color:var(--red)}.c-blue{color:var(--blue)}
+
+/* Chart row */
+.chart-row{display:grid;grid-template-columns:1fr 280px;gap:16px;margin-bottom:28px;}
+@media(max-width:780px){.chart-row{grid-template-columns:1fr;}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;}
+.card-title{font-size:.72rem;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);font-weight:700;margin-bottom:14px;}
+.chart-wrap{position:relative;height:180px;}
+.plan-pills{display:flex;flex-direction:column;gap:10px;justify-content:center;height:100%;}
+.plan-pill{display:flex;justify-content:space-between;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:.82rem;}
+.plan-pill span{font-weight:700;color:var(--accent);}
+
+/* Filter bar */
+.filter-bar{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.filter-bar input,.filter-bar select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-size:.82rem;outline:none;transition:border-color .2s;}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--accent);}
+.filter-bar input{min-width:200px;flex:1;}
+.btn-filter{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-size:.82rem;font-weight:600;cursor:pointer;transition:opacity .15s;}
+.btn-filter:hover{opacity:.85;}
+.btn-clear{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:.82rem;cursor:pointer;text-decoration:none;display:inline-block;}
+.results-info{color:var(--muted);font-size:.78rem;margin-left:auto;}
+
+/* Table */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--surface2);border-bottom:1px solid var(--border);}
+th{padding:11px 14px;text-align:left;font-size:.67rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:700;white-space:nowrap;}
+th a{color:var(--muted);text-decoration:none;}
+th a:hover{color:var(--text);}
+td{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.02);}
+.td-name{color:var(--text);font-weight:600;}
+.td-email{color:var(--accent);font-size:.8rem;}
+.td-ts{color:var(--muted);font-size:.75rem;}
+
+/* Badges */
+.badge{display:inline-block;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:6px;letter-spacing:.4px;}
+.b-admin{background:rgba(139,92,246,.2);color:#a78bfa;}
+.b-user{background:rgba(100,116,139,.2);color:#94a3b8;}
+.b-active{background:rgba(52,211,153,.15);color:var(--green);}
+.b-inactive{background:rgba(100,116,139,.15);color:var(--muted);}
+.b-exp{background:rgba(100,116,139,.2);color:#94a3b8;}
+.b-start{background:rgba(52,211,153,.15);color:var(--green);}
+.b-build{background:rgba(96,165,250,.15);color:var(--blue);}
+.b-pro{background:rgba(251,191,36,.15);color:var(--amber);}
+.b-ultra{background:rgba(241,68,68,.15);color:var(--red);}
+
+/* Action buttons */
+.actions{display:flex;gap:6px;align-items:center;}
+.btn-act{border:none;border-radius:7px;padding:5px 10px;font-size:.72rem;font-weight:600;cursor:pointer;transition:opacity .15s;white-space:nowrap;}
+.btn-act:hover{opacity:.8;}
+.btn-edit{background:rgba(99,102,241,.2);color:#818cf8;}
+.btn-credits{background:rgba(52,211,153,.15);color:var(--green);}
+.btn-role{background:rgba(251,191,36,.12);color:var(--amber);}
+.btn-del{background:rgba(241,68,68,.12);color:var(--red);}
+
+/* Pagination */
+.pagination{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;}
+.page-link{display:inline-block;padding:6px 12px;border-radius:8px;text-decoration:none;color:var(--muted);border:1px solid var(--border);font-size:.8rem;transition:all .15s;}
+.page-link:hover{border-color:var(--accent);color:var(--accent);}
+.page-link.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.page-link.disabled{opacity:.3;pointer-events:none;}
+
+/* Modals */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px;width:100%;max-width:420px;box-shadow:0 30px 80px rgba(0,0,0,.5);}
+.modal h3{font-size:1.05rem;font-weight:700;margin-bottom:18px;}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:.75rem;color:var(--muted);font-weight:600;margin-bottom:5px;}
+.form-group input,.form-group select{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:10px;padding:9px 14px;color:var(--text);font-size:.85rem;outline:none;transition:border-color .2s;}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent);}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+.btn-cancel{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:8px 18px;font-size:.82rem;cursor:pointer;}
+.btn-confirm{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:8px 18px;font-size:.82rem;font-weight:700;cursor:pointer;}
+.btn-confirm.danger{background:var(--red);}
+.btn-confirm.green{background:#059669;}
+.modal-info{font-size:.82rem;color:var(--muted);margin-bottom:6px;}
+.toast{position:fixed;bottom:24px;right:24px;background:#1e293b;border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:.82rem;z-index:999;transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border-color:var(--green);color:var(--green);}
+.toast.err{border-color:var(--red);color:var(--red);}
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <span class="brand">Datalyze Admin</span>
+  <div class="topbar-right">
+    <span class="admin-badge">{{ admin.name }} · {{ admin.email }}</span>
+    <a class="btn-logout" href="/admin/logout">Sign out</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Total Users</div><div class="stat-val c-accent">{{ total_users }}</div></div>
+    <div class="stat"><div class="stat-label">Active Users</div><div class="stat-val c-green">{{ active_users }}</div></div>
+    <div class="stat"><div class="stat-label">Inactive Users</div><div class="stat-val c-amber">{{ inactive_users }}</div></div>
+    <div class="stat"><div class="stat-label">Admin Accounts</div><div class="stat-val c-blue">{{ total_admins }}</div></div>
+    <div class="stat"><div class="stat-label">Total Credits</div><div class="stat-val c-accent">{{ total_credits }}</div></div>
+  </div>
+
+  <!-- Chart row -->
+  <div class="chart-row">
+    <div class="card">
+      <div class="card-title">Plan Distribution</div>
+      <div class="chart-wrap"><canvas id="planChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Plans Breakdown</div>
+      <div class="plan-pills">
+        {% for p in plan_dist %}
+        <div class="plan-pill">{{ p.plan }}<span>{{ p.cnt }} user{{ 's' if p.cnt != 1 else '' }}</span></div>
+        {% else %}
+        <div style="color:var(--muted);font-size:.8rem;">No data</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <form method="GET" action="/admin" class="filter-bar">
+    <input type="text" name="search" value="{{ search }}" placeholder="🔍  Search name or email…"/>
+    <select name="plan_filter">
+      <option value="">All Plans</option>
+      {% for pl in ['Explorer','Starter','Builder','Pro','ULTRA'] %}
+      <option value="{{ pl }}" {% if plan_filter==pl %}selected{% endif %}>{{ pl }}</option>
+      {% endfor %}
+    </select>
+    <select name="role_filter">
+      <option value="">All Roles</option>
+      <option value="user"  {% if role_filter=='user'  %}selected{% endif %}>Users only</option>
+      <option value="admin" {% if role_filter=='admin' %}selected{% endif %}>Admins only</option>
+    </select>
+    <select name="sort">
+      <option value="created_at" {% if sort=='created_at' %}selected{% endif %}>Sort: Registered</option>
+      <option value="credits"    {% if sort=='credits'    %}selected{% endif %}>Sort: Credits</option>
+      <option value="name"       {% if sort=='name'       %}selected{% endif %}>Sort: Name</option>
+      <option value="email"      {% if sort=='email'      %}selected{% endif %}>Sort: Email</option>
+    </select>
+    <select name="sort_dir">
+      <option value="desc" {% if sort_dir=='desc' %}selected{% endif %}>↓ Desc</option>
+      <option value="asc"  {% if sort_dir=='asc'  %}selected{% endif %}>↑ Asc</option>
+    </select>
+    <select name="per_page">
+      {% for n in [10,20,50] %}
+      <option value="{{ n }}" {% if per_page==n %}selected{% endif %}>{{ n }} / page</option>
+      {% endfor %}
+    </select>
+    <input type="hidden" name="page" value="1"/>
+    <button type="submit" class="btn-filter">Apply</button>
+    <a href="/admin" class="btn-clear">Clear</a>
+    <span class="results-info">{{ total_filtered }} result{{ 's' if total_filtered != 1 else '' }}</span>
+  </form>
+
+  <!-- Users table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name / Email</th>
+          <th>Plan</th>
+          <th>Credits</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Registered</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr id="row-{{ u.id }}">
+          <td class="td-ts">{{ u.id }}</td>
+          <td>
+            <div class="td-name">{{ u.name }}</div>
+            <div class="td-email">{{ u.email }}</div>
+          </td>
+          <td>
+            {% set pb = {'Explorer':'b-exp','Starter':'b-start','Builder':'b-build','Pro':'b-pro','ULTRA':'b-ultra'} %}
+            <span class="badge {{ pb.get(u.plan,'b-exp') }}">{{ u.plan }}</span>
+          </td>
+          <td id="credits-{{ u.id }}">{{ u.credits }}</td>
+          <td id="role-{{ u.id }}">
+            <span class="badge {{ 'b-admin' if u.is_admin else 'b-user' }}">
+              {{ 'Admin' if u.is_admin else 'User' }}
+            </span>
+          </td>
+          <td>
+            <span class="badge {{ 'b-active' if u.credits > 0 else 'b-inactive' }}">
+              {{ 'Active' if u.credits > 0 else 'Inactive' }}
+            </span>
+          </td>
+          <td class="td-ts">
+            {{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '—' }}
+          </td>
+          <td>
+            <div class="actions">
+              <button class="btn-act btn-edit"
+                onclick="openEdit({{ u.id }},'{{ u.name|e }}','{{ u.email|e }}','{{ u.plan }}',{{ u.credits }})">
+                ✏️ Edit
+              </button>
+              <button class="btn-act btn-credits"
+                onclick="openCredits({{ u.id }},'{{ u.name|e }}',{{ u.credits }})">
+                💰 Credits
+              </button>
+              {% if not u.is_admin or u.id != admin.id %}
+              <button class="btn-act btn-role" id="role-btn-{{ u.id }}"
+                onclick="toggleRole({{ u.id }},{{ 'true' if u.is_admin else 'false' }})">
+                🔄 {{ 'Demote' if u.is_admin else 'Make Admin' }}
+              </button>
+              {% endif %}
+              {% if u.id != admin.id %}
+              <button class="btn-act btn-del"
+                onclick="openDelete({{ u.id }},'{{ u.name|e }}','{{ u.email|e }}')">
+                ❌
+              </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px;">No users match this filter.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <div class="pagination">
+    <a class="page-link {{ 'disabled' if page <= 1 }}"
+       href="?page={{ page-1 }}&per_page={{ per_page }}&search={{ search }}&plan_filter={{ plan_filter }}&role_filter={{ role_filter }}&sort={{ sort }}&sort_dir={{ sort_dir }}">
+      ← Prev
+    </a>
+    {% for p in range(1, total_pages+1) %}
+      {% if p == page %}
+        <span class="page-link active">{{ p }}</span>
+      {% elif p == 1 or p == total_pages or (p >= page-2 and p <= page+2) %}
+        <a class="page-link"
+           href="?page={{ p }}&per_page={{ per_page }}&search={{ search }}&plan_filter={{ plan_filter }}&role_filter={{ role_filter }}&sort={{ sort }}&sort_dir={{ sort_dir }}">
+          {{ p }}
+        </a>
+      {% elif p == page-3 or p == page+3 %}
+        <span class="page-link disabled">…</span>
+      {% endif %}
+    {% endfor %}
+    <a class="page-link {{ 'disabled' if page >= total_pages }}"
+       href="?page={{ page+1 }}&per_page={{ per_page }}&search={{ search }}&plan_filter={{ plan_filter }}&role_filter={{ role_filter }}&sort={{ sort }}&sort_dir={{ sort_dir }}">
+      Next →
+    </a>
+  </div>
+  {% endif %}
+
+</div><!-- /main -->
+
+<!-- ── Edit Modal ── -->
+<div class="overlay" id="editModal">
+  <div class="modal">
+    <h3>✏️ Edit User</h3>
+    <div class="modal-info" id="edit-meta"></div>
+    <div class="form-group">
+      <label>Name</label>
+      <input id="edit-name" type="text" placeholder="Full name"/>
+    </div>
+    <div class="form-group">
+      <label>Plan</label>
+      <select id="edit-plan">
+        {% for pl in ['Explorer','Starter','Builder','Pro','ULTRA'] %}
+        <option value="{{ pl }}">{{ pl }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Credits</label>
+      <input id="edit-credits" type="number" min="0" placeholder="0"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancel</button>
+      <button class="btn-confirm" onclick="submitEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Credits Modal ── -->
+<div class="overlay" id="creditsModal">
+  <div class="modal">
+    <h3>💰 Adjust Credits</h3>
+    <div class="modal-info" id="cred-meta"></div>
+    <div class="form-group">
+      <label>Action</label>
+      <select id="cred-action">
+        <option value="add">➕ Add Credits</option>
+        <option value="remove">➖ Remove Credits</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Amount</label>
+      <input id="cred-amount" type="number" min="1" value="50"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancel</button>
+      <button class="btn-confirm green" onclick="submitCredits()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Delete Modal ── -->
+<div class="overlay" id="deleteModal">
+  <div class="modal">
+    <h3>❌ Soft Delete User</h3>
+    <p class="modal-info" id="del-meta" style="margin-bottom:14px;"></p>
+    <p style="font-size:.82rem;color:var(--muted);">
+      The user will be marked as deleted and hidden from all views.
+      This does <strong style="color:var(--text);">not</strong> permanently remove any data.
+    </p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancel</button>
+      <button class="btn-confirm danger" onclick="submitDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ───────────────────────────────────────────────────────────────────
+let _uid = null;
+
+// ── Plan chart ──────────────────────────────────────────────────────────────
+const planData = [
+  {% for p in plan_dist %}{ label:"{{ p.plan }}", val:{{ p.cnt }} },{% endfor %}
+];
+if(planData.length){
+  const ctx = document.getElementById('planChart').getContext('2d');
+  new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels: planData.map(d=>d.label),
+      datasets:[{
+        data: planData.map(d=>d.val),
+        backgroundColor:['#6366f1','#34d399','#60a5fa','#fbbf24','#f87171'],
+        borderWidth:2,
+        borderColor:'#0f1629',
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{color:'#94a3b8',font:{size:11},padding:12}}},
+    }
+  });
+}
+
+// ── Toast ───────────────────────────────────────────────────────────────────
+function toast(msg, type='ok'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(()=>t.className='toast',2600);
+}
+
+// ── Modal helpers ────────────────────────────────────────────────────────────
+function closeModals(){
+  document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'));
+  _uid = null;
+}
+document.querySelectorAll('.overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) closeModals(); });
+});
+
+// ── Edit modal ───────────────────────────────────────────────────────────────
+function openEdit(id, name, email, plan, credits){
+  _uid = id;
+  document.getElementById('edit-meta').textContent = email;
+  document.getElementById('edit-name').value = name;
+  document.getElementById('edit-plan').value = plan;
+  document.getElementById('edit-credits').value = credits;
+  document.getElementById('editModal').classList.add('open');
+}
+async function submitEdit(){
+  const body = {
+    name:    document.getElementById('edit-name').value.trim(),
+    plan:    document.getElementById('edit-plan').value,
+    credits: parseInt(document.getElementById('edit-credits').value)||0,
+  };
+  const r = await fetch(`/admin/users/${_uid}/edit`,{
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+  });
+  const d = await r.json();
+  if(d.success){ toast('User updated ✓'); closeModals(); setTimeout(()=>location.reload(),800); }
+  else toast(d.detail||'Error','err');
+}
+
+// ── Credits modal ─────────────────────────────────────────────────────────────
+function openCredits(id, name, current){
+  _uid = id;
+  document.getElementById('cred-meta').textContent = `${name} · Current: ${current} credits`;
+  document.getElementById('cred-amount').value = 50;
+  document.getElementById('creditsModal').classList.add('open');
+}
+async function submitCredits(){
+  const body = {
+    action: document.getElementById('cred-action').value,
+    amount: parseInt(document.getElementById('cred-amount').value)||0,
+  };
+  const r = await fetch(`/admin/users/${_uid}/credits`,{
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+  });
+  const d = await r.json();
+  if(d.success){
+    document.getElementById(`credits-${_uid}`).textContent = d.credits;
+    toast('Credits updated ✓');
+    closeModals();
+  } else toast(d.detail||'Error','err');
+}
+
+// ── Delete modal ──────────────────────────────────────────────────────────────
+function openDelete(id, name, email){
+  _uid = id;
+  document.getElementById('del-meta').textContent = `${name} (${email})`;
+  document.getElementById('deleteModal').classList.add('open');
+}
+async function submitDelete(){
+  const r = await fetch(`/admin/users/${_uid}/delete`,{method:'POST'});
+  const d = await r.json();
+  if(d.success){
+    document.getElementById(`row-${_uid}`)?.remove();
+    toast('User soft-deleted ✓');
+    closeModals();
+  } else toast(d.detail||'Error','err');
+}
+
+// ── Role toggle ───────────────────────────────────────────────────────────────
+async function toggleRole(id, currentlyAdmin){
+  const label = currentlyAdmin ? 'demote this user from admin?' : 'grant admin access to this user?';
+  if(!confirm(`Are you sure you want to ${label}`)) return;
+  const r = await fetch(`/admin/users/${id}/toggle-admin`,{method:'POST'});
+  const d = await r.json();
+  if(d.success){
+    const isNowAdmin = d.is_admin;
+    document.getElementById(`role-${id}`).innerHTML =
+      `<span class="badge ${isNowAdmin?'b-admin':'b-user'}">${isNowAdmin?'Admin':'User'}</span>`;
+    const btn = document.getElementById(`role-btn-${id}`);
+    if(btn) btn.textContent = `🔄 ${isNowAdmin?'Demote':'Make Admin'}`;
+    toast(`Role updated ✓`);
+  } else toast(d.detail||'Error','err');
+}
+</script>
+</body>
+</html>
