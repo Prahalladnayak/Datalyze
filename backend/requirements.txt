@@ -18,6 +18,7 @@ jinja2
 # SQLite (keep until migration verified, then remove)
 aiosqlite
 scikit-learn
+httpx
 passlib[bcrypt]
 python-jose[cryptography]
 razorpay
