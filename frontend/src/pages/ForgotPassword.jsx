@@ -15,7 +15,7 @@ const ForgotPassword = () => {
         setStatus('loading');
 
         try {
-            const { data } = await axios.post('/api/auth/forgot-password', { email }, { timeout: 15000 });
+            const { data } = await axios.post('/api/auth/forgot-password', { email }, { timeout: 30000 });
             // Server always returns 200 (prevents email enumeration)
             // Dev mode: if token returned, show it
             if (data.dev_reset_token) {

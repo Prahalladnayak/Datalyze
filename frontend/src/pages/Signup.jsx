@@ -81,7 +81,7 @@ const Signup = () => {
             try {
                 const { data } = await axios.post('/api/auth/signup/request-otp', {
                     email: email.trim(),
-                }, { timeout: 15000 });
+                }, { timeout: 30000 });
                 setOtpSent(true);
                 setCooldown(30);
             } catch (err) {
@@ -115,7 +115,7 @@ const Signup = () => {
                     email: email.trim(),
                     password,
                     otp,
-                }, { timeout: 15000 });
+                }, { timeout: 30000 });
                 login(data); // data = { token, user }
                 navigate(from, { replace: true });
             } catch (err) {
@@ -140,7 +140,7 @@ const Signup = () => {
         try {
             const { data } = await axios.post('/api/auth/signup/request-otp', {
                 email: email.trim(),
-            }, { timeout: 15000 });
+            }, { timeout: 30000 });
             setCooldown(30);
         } catch (err) {
             setShake(true);
