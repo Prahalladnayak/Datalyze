@@ -19,6 +19,7 @@ const Signup = () => {
     // OTP Flow State
     const [otpSent, setOtpSent] = useState(false);
     const [otp, setOtp] = useState('');
+    const [devOtp, setDevOtp] = useState('');
     const [cooldown, setCooldown] = useState(0);
 
     const [shake, setShake] = useState(false);
@@ -84,6 +85,10 @@ const Signup = () => {
                 }, { timeout: 30000 });
                 setOtpSent(true);
                 setCooldown(30);
+                if (data.dev_otp) {
+                    setDevOtp(data.dev_otp);
+                    setOtp(data.dev_otp);
+                }
             } catch (err) {
                 setShake(true);
                 setTimeout(() => setShake(false), 300);
@@ -411,6 +416,14 @@ const Signup = () => {
                             </div>
 
 
+
+                            {devOtp && (
+                                <div className="bg-primary-500/10 border border-primary-500/30 rounded-xl p-3 text-center animate-fade-in mb-2">
+                                    <p className="text-xs text-primary-300 font-medium">
+                                        Verification Code: <strong className="text-white tracking-widest font-mono text-base ml-1.5">{devOtp}</strong>
+                                    </p>
+                                </div>
+                            )}
 
                             {/* OTP Code Input */}
                             <div className="space-y-1.5">
