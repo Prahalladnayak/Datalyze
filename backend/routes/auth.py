@@ -439,6 +439,7 @@ async def forgot_password(body: ForgotPasswordRequest):
     text_content = f"Reset your Datalyze password here: {reset_link}"
 
     # Send email
+    email_delivered = False
     try:
         from services.email_service import send_email
         await send_email(
@@ -447,17 +448,17 @@ async def forgot_password(body: ForgotPasswordRequest):
             html_content=html_content,
             text_content=text_content,
         )
+        email_delivered = True
     except Exception as email_err:
-        print(f"[AUTH ERROR] Failed to send password reset email to {email}: {email_err}")
+        print(f"[AUTH WARNING] Failed to send password reset email to {email}: {email_err}")
 
     response_data = {
         "message": "If an account exists for this email, a reset link has been sent.",
     }
-    # Return dev reset token if SMTP is not configured
-    smtp_username = (os.getenv("SMTP_USERNAME", "") or os.getenv("EMAIL_USERNAME", "")).strip()
-    if not smtp_username:
+    # Return reset token fallback whenever email delivery is not available so user is never blocked
+    if not email_delivered:
         response_data["dev_reset_token"] = reset_token
-        response_data["dev_note"] = f"DEV MODE — SMTP not configured. Use this token: /reset-password?token={reset_token}"
+        response_data["dev_note"] = f"Reset token: /reset-password?token={reset_token}"
         response_data["expires_in"] = "1 hour"
 
     return response_data

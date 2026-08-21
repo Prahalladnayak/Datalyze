@@ -74,15 +74,24 @@ async def _call_ml_service(endpoint: str, payload: dict) -> dict:
             resp = await client.post(ml_url, json=payload)
 
         if resp.status_code == 200:
-            return resp.json()
+            try:
+                return resp.json()
+            except Exception:
+                raise HTTPException(status_code=500, detail="Invalid JSON response from ML Service")
         else:
-            error_detail = resp.json().get("detail", f"ML Service returned status {resp.status_code}")
+            try:
+                error_detail = resp.json().get("detail", resp.text)
+            except Exception:
+                if resp.status_code in [502, 503, 504]:
+                    error_detail = "ML Service is waking up from idle sleep. Please wait 30 seconds and retry."
+                else:
+                    error_detail = resp.text or f"ML Service returned status {resp.status_code}"
             raise HTTPException(status_code=resp.status_code, detail=error_detail)
 
     except httpx.ConnectError:
         raise HTTPException(
             status_code=503,
-            detail="ML Service is unavailable. Please ensure the ML Service is running and ML_SERVICE_URL is configured."
+            detail="ML Service is waking up or unavailable. Please retry in 30 seconds."
         )
     except httpx.TimeoutException:
         raise HTTPException(
