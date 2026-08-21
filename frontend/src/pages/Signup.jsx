@@ -168,7 +168,7 @@ const Signup = () => {
 
     const triggerGooglePopup = () => {
         console.log("triggerGooglePopup invoked!");
-        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '59266859117-oqav8451bbs44kbr4341a3bipcgelc20.apps.googleusercontent.com';
         console.log("VITE_GOOGLE_CLIENT_ID loaded:", clientId);
 
         if (!clientId || clientId === 'YOUR_GOOGLE_CLIENT_ID') {

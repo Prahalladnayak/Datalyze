@@ -438,15 +438,17 @@ async def forgot_password(body: ForgotPasswordRequest):
     """
     text_content = f"Reset your Datalyze password here: {reset_link}"
 
-    # Send email in background (fire-and-forget)
-    asyncio.create_task(
-        send_email_background(
+    # Send email
+    try:
+        from services.email_service import send_email
+        await send_email(
             to_email=email,
             subject="Reset your Datalyze password",
             html_content=html_content,
             text_content=text_content,
         )
-    )
+    except Exception as email_err:
+        print(f"[AUTH ERROR] Failed to send password reset email to {email}: {email_err}")
 
     response_data = {
         "message": "If an account exists for this email, a reset link has been sent.",
@@ -693,15 +695,21 @@ async def request_otp(body: RequestOTPRequest):
     # Log the OTP for local development verification
     print(f"[DEV OTP] {otp} generated for {email}")
 
-    # Send email in background (fire-and-forget)
-    asyncio.create_task(
-        send_email_background(
+    # Send email and verify delivery
+    try:
+        from services.email_service import send_email
+        await send_email(
             to_email=email,
             subject="Datalyse – Email Verification Code",
             html_content=html_content,
             text_content=text_content
         )
-    )
+    except Exception as email_err:
+        print(f"[AUTH ERROR] Failed to send OTP email to {email}: {email_err}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to deliver verification code email: {str(email_err)}"
+        )
 
     return {"message": "Verification code sent to your email."}
 
